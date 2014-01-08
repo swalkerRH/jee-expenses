@@ -1,10 +1,9 @@
 package com.expenses.model;
 
-// Generated Dec 18, 2013 11:38:32 AM by Hibernate Tools 3.4.0.CR1
+// Generated Jan 8, 2014 3:15:29 PM by Hibernate Tools 3.4.0.CR1
 
 import java.util.Date;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -24,28 +23,37 @@ import javax.persistence.TemporalType;
 public class Expense implements java.io.Serializable {
 
 	private int id;
+	private ExpenseUser expenseUser;
 	private ExpenseCategory expenseCategory;
 	private String description;
-	private Float cost;
+	private float cost;
 	private Date entered;
 
 	public Expense() {
 	}
 
-	public Expense(int id) {
+	public Expense(int id, ExpenseUser expenseUser, String description,
+			float cost, Date entered) {
 		this.id = id;
+		this.expenseUser = expenseUser;
+		this.description = description;
+		this.cost = cost;
+		this.entered = entered;
 	}
 
-	public Expense(int id, ExpenseCategory expenseCategory, String description,
-			Float cost, Date entered) {
+	public Expense(int id, ExpenseUser expenseUser,
+			ExpenseCategory expenseCategory, String description, float cost,
+			Date entered) {
 		this.id = id;
+		this.expenseUser = expenseUser;
 		this.expenseCategory = expenseCategory;
 		this.description = description;
 		this.cost = cost;
 		this.entered = entered;
 	}
 
-	@Id @GeneratedValue
+	@Id 
+	@GeneratedValue
 	@Column(name = "id", unique = true, nullable = false)
 	public int getId() {
 		return this.id;
@@ -53,6 +61,16 @@ public class Expense implements java.io.Serializable {
 
 	public void setId(int id) {
 		this.id = id;
+	}
+
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "user_id", nullable = false)
+	public ExpenseUser getExpenseUser() {
+		return this.expenseUser;
+	}
+
+	public void setExpenseUser(ExpenseUser expenseUser) {
+		this.expenseUser = expenseUser;
 	}
 
 	@ManyToOne(fetch = FetchType.EAGER)
@@ -65,7 +83,7 @@ public class Expense implements java.io.Serializable {
 		this.expenseCategory = expenseCategory;
 	}
 
-	@Column(name = "description")
+	@Column(name = "description", nullable = false)
 	public String getDescription() {
 		return this.description;
 	}
@@ -74,17 +92,17 @@ public class Expense implements java.io.Serializable {
 		this.description = description;
 	}
 
-	@Column(name = "cost", precision = 8, scale = 8)
-	public Float getCost() {
+	@Column(name = "cost", nullable = false, precision = 8, scale = 8)
+	public float getCost() {
 		return this.cost;
 	}
 
-	public void setCost(Float cost) {
+	public void setCost(float cost) {
 		this.cost = cost;
 	}
 
 	@Temporal(TemporalType.DATE)
-	@Column(name = "entered", length = 13)
+	@Column(name = "entered", nullable = false, length = 13)
 	public Date getEntered() {
 		return this.entered;
 	}

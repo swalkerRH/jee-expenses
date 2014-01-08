@@ -1,6 +1,5 @@
 package com.expenses.controller;
 
-import java.util.Calendar;
 import java.util.Date;
 
 import javax.annotation.PostConstruct;
@@ -8,8 +7,10 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.expenses.annotation.CurrentUser;
 import com.expenses.model.Expense;
 import com.expenses.model.ExpenseCategory;
+import com.expenses.model.ExpenseUser;
 import com.expenses.service.ExpenseService;
 
 @RequestScoped
@@ -19,12 +20,16 @@ public class ExpenseController {
 	@Inject
 	private ExpenseService expenseService;
 	
+	@Inject @CurrentUser
+	private ExpenseUser expenseUser;
+	
 	private Expense expense;
 	
 	@PostConstruct
 	private void initExpense(){
 		expense = new Expense();
 		expense.setCost(new Float(0.00));
+		expense.setExpenseUser(expenseUser);
 	}
 	
 	public void addExpense(){

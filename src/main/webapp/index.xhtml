@@ -23,8 +23,10 @@
 	template="/WEB-INF/templates/default.xhtml">
 	<h:outputScript name="jsf.js" library="javax.faces" target="head" />
 	<ui:define name="globalnav">
-        Goto Sign in page
-    	</ui:define>
+	<h:form>
+	Hello, #{username} #{userID}! 
+	</h:form>
+	</ui:define>
 	<ui:define name="localnav">
 		<!-- Adding/filter navigation -->
 		<h:form>
@@ -126,13 +128,13 @@
 		<h:dataTable value="#{expenses}" var="expense"
 			styleClass="simpletablestyle">
 			<h:column>
-				<f:facet name="header">Description</f:facet>
+				<f:facet name="header">Date</f:facet>
 				<h:outputText value="#{expense.entered}">
 					<f:convertDateTime dateStyle="short" type="date" />
 				</h:outputText>
     		</h:column>
 			<h:column>
-				<f:facet name="header">Date</f:facet>
+				<f:facet name="header">Description</f:facet>
 				#{expense.description}
 				<f:facet name="footer">Total: </f:facet>
 			</h:column>
