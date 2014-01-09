@@ -52,16 +52,6 @@ public class ExpenseDB {
 		log.info("Got " + expenseUser.getUsername() + "'s expense categories");
 		return query.getResultList();
 	}
-
-	private <T> List<T> getEntityById(Class<T> clazz) {
-		CriteriaBuilder builder = em.getCriteriaBuilder();
-		CriteriaQuery<T> criteria = builder.createQuery(clazz);
-		Root<T> root = criteria.from(clazz);
-		criteria.select(root).where(builder.equal(root.get("userId"), expenseUser.getId()))
-			.orderBy(builder.asc(root.get("id")));
-		log.info(criteria.toString());
-		return em.createQuery(criteria).getResultList();
-	}
 	
 	public ExpenseUser getExpenseUser(String username){
 		CriteriaBuilder builder = em.getCriteriaBuilder();
@@ -70,17 +60,27 @@ public class ExpenseDB {
 		criteria.select(root);
 		criteria.where(builder.equal(root.get("username"), username));
 		expenseUser = em.createQuery(criteria).getSingleResult();
-		System.out.println("found user");
 		return expenseUser;
 	}
 
 	public List<Expense> getExpensesInCategory(ExpenseCategory category) {
-		CriteriaBuilder builder = em.getCriteriaBuilder();
-		CriteriaQuery<Expense> criteria = builder.createQuery(Expense.class);
-		Root<Expense> root = criteria.from(Expense.class);
-		criteria.select(root)
-				.where(builder.equal(root.get("category"), category.getId()))
-				.orderBy(builder.asc(root.get("id")));
-		return em.createQuery(criteria).getResultList();
+		if(expenseUser== null){
+			uuEventSrc.fire(new UserUpdateEvent());
+		}
+		Query query = em.createQuery("select e from Expense e where e.expenseUser= :user_id and e.expenseCategory = :cat");
+		query.setParameter("user_id", expenseUser);
+		query.setParameter("cat", category);
+		log.info("Got " + expenseUser.getUsername() + "'s expense categories");
+		return query.getResultList();
+	}
+	
+	public ExpenseCategory getExpenseCategoryByName(String name){
+		if(expenseUser== null){
+			uuEventSrc.fire(new UserUpdateEvent());
+		}
+		Query query = em.createQuery("select c from ExpenseCategory c where c.name = :name and c.expenseUser = :user_id");
+		query.setParameter("name", name);
+		query.setParameter("user_id", expenseUser);
+		return (ExpenseCategory) query.getSingleResult();
 	}
 }
