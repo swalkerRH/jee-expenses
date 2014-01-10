@@ -81,6 +81,13 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+			<dependency>  
+                <groupId>org.richfaces</groupId>  
+                <artifactId>richfaces-bom</artifactId>  
+                <version>4.3.2.Final</version>  
+                <scope>import</scope>  
+                <type>pom</type>  
+            </dependency>  
 		</dependencies>
 	</dependencyManagement>
 
@@ -191,7 +198,7 @@
 			<artifactId>arquillian-protocol-servlet</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-core-asl</artifactId>
@@ -199,7 +206,19 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>org.richfaces.ui</groupId>
+			<artifactId>richfaces-components-ui</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.richfaces.core</groupId>
+			<artifactId>richfaces-core-impl</artifactId>
+		</dependency>
 
+		<!-- <dependency> <groupId>javax.servlet</groupId> <artifactId>jstl</artifactId> 
+			<version>1.2</version> <scope>provided</scope> </dependency> <dependency> 
+			<groupId>com.sun.facelets</groupId> <artifactId>jsf-facelets</artifactId> 
+			<version>1.1.10</version> </dependency> -->
 	</dependencies>
 
 	<build>

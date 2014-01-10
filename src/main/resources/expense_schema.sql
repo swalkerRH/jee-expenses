@@ -25,3 +25,9 @@ cost real not null,
 entered date not null,
 user_id int references expense_user(id) not null
 );
+
+create table expense_image (
+id serial primary key,
+expense_id int references expense(id),
+image_data bytea
+);

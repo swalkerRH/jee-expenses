@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app xmlns="http://java.sun.com/xml/ns/javaee" version="2.5">
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+	<context-param>
+		<param-name>org.ajax4jsf.SKIN</param-name>
+		<param-value>classic</param-value>
+	</context-param>
 	<servlet>
 		<servlet-name>facesServlet</servlet-name>
 		<servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
@@ -10,28 +16,17 @@
 		<url-pattern>*.xhtml</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-        <servlet-name>javax.ws.rs.core.Application</servlet-name>
-        <url-pattern>/rest/*</url-pattern>
-    </servlet-mapping>
-	<!-- Roles -->
-	<security-role>
-		<description>Administrators</description>
-		<role-name>admin</role-name>
-	</security-role>
-	<security-role>
-		<description>Management</description>
-		<role-name>mgmt</role-name>
-	</security-role>
-	<security-role>
-		<description>User</description>
-		<role-name>user</role-name>
-	</security-role>
+		<servlet-name>javax.ws.rs.core.Application</servlet-name>
+		<url-pattern>/rest/*</url-pattern>
+	</servlet-mapping>
 	<!-- Resource / Role Mapping -->
 	<security-constraint>
 		<display-name>Unprotected resources</display-name>
 		<web-resource-collection>
+			<web-resource-name>unp</web-resource-name>
 			<url-pattern>/javax.faces.resource/*</url-pattern>
 			<url-pattern>/resources/*</url-pattern>
+			<url-pattern>/rfRes/*</url-pattern>
 		</web-resource-collection>
 	</security-constraint>
 	<security-constraint>
@@ -66,7 +61,19 @@
 			<transport-guarantee>NONE</transport-guarantee>
 		</user-data-constraint>
 	</security-constraint>
-	<!-- Login Prompt -->
+	<!-- Roles -->
+	<security-role>
+		<description>Administrators</description>
+		<role-name>admin</role-name>
+	</security-role>
+	<security-role>
+		<description>Management</description>
+		<role-name>mgmt</role-name>
+	</security-role>
+	<security-role>
+		<description>User</description>
+		<role-name>user</role-name>
+	</security-role>
 	<login-config>
 		<auth-method>FORM</auth-method>
 		<form-login-config>
@@ -77,4 +84,7 @@
 	<session-config>
 		<session-timeout>1</session-timeout>
 	</session-config>
+	<welcome-file-list>
+		<welcome-file>/index.xhtml</welcome-file>
+	</welcome-file-list>
 </web-app>
