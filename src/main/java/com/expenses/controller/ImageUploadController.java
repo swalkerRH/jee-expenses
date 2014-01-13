@@ -5,7 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.util.List;
 import java.util.logging.Logger;
 
 import javax.enterprise.context.SessionScoped;
@@ -20,7 +19,6 @@ import com.expenses.data.ExpenseDB;
 import com.expenses.model.Expense;
 import com.expenses.model.ExpenseImage;
 import com.expenses.service.ExpenseService;
-import com.expenses.service.FileListService;
 
 @SessionScoped
 @Named
@@ -30,18 +28,14 @@ public class ImageUploadController implements Serializable {
 	private Logger log;
 	
 	@Inject
-	private FileListService fileListService;
-	
-	@Inject
 	private ExpenseService expenseService;
 	
 	@Inject
 	private ExpenseDB db;
 	
-	@Inject
-	private List<ExpenseImage> fileList;
-	
 	private Expense currentExpense;
+	
+
 	
 	public void storeImage(FileUploadEvent fileEvent) throws Exception{
 		UploadedFile file = fileEvent.getUploadedFile();
@@ -53,6 +47,11 @@ public class ImageUploadController implements Serializable {
 	}
 	
 	public void renderImage(OutputStream out, Object obj) throws IOException{
+		log.info("Rendering image with id: " + obj);
+		if(obj == null){
+			log.warning("image ID was null, skipping rendering");
+			return;
+		}
 		Integer imageId = (Integer) obj;
 		ExpenseImage image = db.getExpenseImageById(imageId);
 		BufferedImage buffImage = ImageIO.read(new ByteArrayInputStream(
@@ -60,7 +59,6 @@ public class ImageUploadController implements Serializable {
 		String mimeType = image.getMimeType();
 		ImageIO.write(buffImage, mimeType.substring(mimeType.indexOf("/")+1), out);
 	}
-	
 
 	public Expense getCurrentExpense() {
 		return currentExpense;

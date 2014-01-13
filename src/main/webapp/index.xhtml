@@ -130,8 +130,8 @@
 		</h:form>
 	</ui:define>
 	<ui:define name="content">
-		<rich:dataTable value="#{expenses}" var="expense"
-			 rowKeyVar="row" width="100%">
+		<rich:dataTable value="#{expenses}" var="expense" rowKeyVar="row"
+			width="100%">
 			<rich:column>
 				<f:facet name="header">Date</f:facet>
 				<h:outputText value="#{expense.entered}">
@@ -161,20 +161,23 @@
     		</rich:column>
 			<rich:column id="imageCol">
 				<f:facet name="header">Image</f:facet>
-				<h:form >
+				<h:form>
 					<a4j:commandLink value="Upload Image"
 						rendered="#{expense.expenseImage == null}"
-						oncomplete="#{rich:component('imageUpload')}.show()"
-						>
+						oncomplete="#{rich:component('imageUpload')}.show()">
 						<f:setPropertyActionListener value="#{expense}"
-                            target="#{imageUploadController.currentExpense}" />
+							target="#{imageUploadController.currentExpense}" />
+					</a4j:commandLink>	
+					<a4j:commandLink 
+						onclick="#{rich:component('imageView')}.show()"
+						rendered="#{expense.expenseImage != null}"
+						value="View Image">
+						<a4j:ajax event="click" immediate="true" render="enlargedImage" />
+						<f:setPropertyActionListener target="#{imageViewController.currentImageId}" value="#{expense.expenseImage.id}"/>
+						
 					</a4j:commandLink>
-					<a4j:mediaOutput element="img"
-						createContent="#{imageUploadController.renderImage}"
-						value="#{expense.expenseImage.id}" mimeType="#{expense.expenseImage.mimeType}" session="true"
-						cachable="false" width="50%" 
-						rendered="#{expense.expenseImage != null}"/>
 				</h:form>
+				
 			</rich:column>
 			<rich:column>
 				<h:form>
@@ -192,15 +195,36 @@
             	</h:outputLink>
 			</f:facet>
 			<h:form>
-				<rich:fileUpload acceptedTypes="jpg,png,pdf"
+				<rich:fileUpload acceptedTypes="jpg,png,gif"
 					fileUploadListener="#{imageUploadController.storeImage}"
 					immediateUpload="true" addLabel="Add Image"
-					ontyperejected="alert('Only JPG files');" maxFilesQuantity="1"
-					onuploadcomplete="#{rich:component('imageUpload')}.hide(); window.location.replace(window.location.href); return false;"
-					>
-					<a4j:ajax event="uploadcomplete" execute="@none" render="info,imageCol" />
+					ontyperejected="alert('Only JPG, PNG, GIF files are supported');" maxFilesQuantity="1"
+					onuploadcomplete="#{rich:component('imageUpload')}.hide(); window.location.replace(window.location.href); return false;">
+					<a4j:ajax event="uploadcomplete" execute="@none"
+						render="info,imageCol" />
 				</rich:fileUpload>
 			</h:form>
 		</rich:popupPanel>
+		
+		<rich:popupPanel id="imageView" minHeight="500" minWidth="500" modal="false" resizeable="true">
+			<f:facet name="header"> Image Preview </f:facet>
+			<f:facet name="controls">
+				<h:outputLink value="#"
+					onclick="#{rich:component('imageView')}.hide(); return false;"
+					>
+                Click Image to Close
+            	</h:outputLink>
+			</f:facet>
+			<a4j:mediaOutput element="img"
+							createContent="#{imageViewController.renderCurrentImage}"
+							value="#{imageViewController.currentImageId}"
+							cachable="true"
+							onclick="#{rich:component('imageView')}.hide(); return false;"
+							id="enlargedImage"
+							style="height:90%;width:90%;"
+							>
+			</a4j:mediaOutput>
+		</rich:popupPanel>
+
 	</ui:define>
 </ui:composition>
