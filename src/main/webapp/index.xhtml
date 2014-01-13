@@ -131,7 +131,7 @@
 	</ui:define>
 	<ui:define name="content">
 		<rich:dataTable value="#{expenses}" var="expense"
-			 rowKeyVar="row">
+			 rowKeyVar="row" width="100%">
 			<rich:column>
 				<f:facet name="header">Date</f:facet>
 				<h:outputText value="#{expense.entered}">
@@ -159,12 +159,13 @@
 				<f:facet name="header">Category</f:facet>
     			#{expense.expenseCategory.name}
     		</rich:column>
-			<rich:column>
+			<rich:column id="imageCol">
 				<f:facet name="header">Image</f:facet>
-				<h:form>
+				<h:form >
 					<a4j:commandLink value="Upload Image"
 						rendered="#{expense.expenseImage == null}"
-						oncomplete="#{rich:component('imageUpload')}.show()">
+						oncomplete="#{rich:component('imageUpload')}.show()"
+						>
 						<f:setPropertyActionListener value="#{expense}"
                             target="#{imageUploadController.currentExpense}" />
 					</a4j:commandLink>
@@ -195,8 +196,9 @@
 					fileUploadListener="#{imageUploadController.storeImage}"
 					immediateUpload="true" addLabel="Add Image"
 					ontyperejected="alert('Only JPG files');" maxFilesQuantity="1"
-					onuploadcomplete="#{rich:component('imageUpload')}.hide(); return false;">
-					<a4j:ajax event="uploadcomplete" execute="@none" render="info" />
+					onuploadcomplete="#{rich:component('imageUpload')}.hide(); window.location.replace(window.location.href); return false;"
+					>
+					<a4j:ajax event="uploadcomplete" execute="@none" render="info,imageCol" />
 				</rich:fileUpload>
 			</h:form>
 		</rich:popupPanel>

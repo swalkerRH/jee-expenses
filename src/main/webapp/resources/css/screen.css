@@ -193,7 +193,7 @@ input {
 }
 
 .simpletablestyle thead {
-  background: url(#{request.contextPath}/resources/gfx/bkg-blkheader.png) black repeat-x top left;
+  background: url(#{request.contextPath}/resources/gfx/bkg-blkheader.png) white repeat-x top left;
   height:31px;
   font-size:10px;
   font-weight:bold;
