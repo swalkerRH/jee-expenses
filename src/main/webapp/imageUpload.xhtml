@@ -35,12 +35,31 @@
 		</h:form>
 		<h:form>
 			<rich:dataTable rendered="#{imageViewController.assignView}"
-				value="#{fileList}" var="image" width="100%">
+				value="#{fileList}" var="image">
 				<rich:column>
 					<a4j:mediaOutput element="img"
 						createContent="#{imageViewController.createPreview}"
 						value="#{image.id}" mimeType="image/jpeg" session="true"
 						cachable="false" width="50%" />
+				</rich:column>
+				<rich:column>
+					<f:facet name="header"> Category </f:facet>
+					<h:selectOneMenu id="expenseCategory"
+						value="#{expenseController.expenseCategory}"
+						converter="#{categoryConverter}">
+						<f:selectItems value="#{categories}" var="cat" itemValue="#{cat}"
+							itemLabel="#{cat.name}" itemDescription="#{cat.description}" />
+					</h:selectOneMenu>
+				</rich:column>
+				<rich:column>
+					<f:facet name="header"> Expense </f:facet>
+					<h:selectOneMenu id="categoryExpenses"
+						value="#{expenses}"
+						disabled="#{expenseController.expenseCategory != null}"
+						onfocus="#{filterController.applyFilter()}">
+						<f:selectItems value="#{expenses}" var="exp" itemValue="#{exp}"
+							itemLabel="#{exp.description}" itemDescription="#{exp.description}" />
+					</h:selectOneMenu>
 				</rich:column>
 			</rich:dataTable>
 		</h:form>

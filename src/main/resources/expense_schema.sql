@@ -28,6 +28,6 @@ user_id int references expense_user(id) not null
 
 create table expense_image (
 id serial primary key,
-expense_id int references expense(id),
+expense_id int references expense(id) unique,
 image_data bytea
 );

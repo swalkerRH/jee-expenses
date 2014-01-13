@@ -1,6 +1,8 @@
 package com.expenses.controller;
 
 import java.util.Date;
+import java.util.List;
+import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
@@ -10,12 +12,16 @@ import javax.inject.Named;
 import com.expenses.annotation.CurrentUser;
 import com.expenses.model.Expense;
 import com.expenses.model.ExpenseCategory;
+import com.expenses.model.ExpenseImage;
 import com.expenses.model.ExpenseUser;
 import com.expenses.service.ExpenseService;
 
 @RequestScoped
 @Named
 public class ExpenseController {
+	
+	@Inject
+	private Logger log;
 	
 	@Inject
 	private ExpenseService expenseService;
@@ -45,6 +51,7 @@ public class ExpenseController {
 		return expense;
 	}
 	public void setExpense(Expense expense) {
+		log.info("set Expense");
 		this.expense = expense;
 	}
 	public ExpenseCategory getExpenseCategory() {

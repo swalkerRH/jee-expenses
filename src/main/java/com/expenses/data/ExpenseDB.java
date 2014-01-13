@@ -15,6 +15,7 @@ import javax.persistence.criteria.Root;
 import com.expenses.event.UserUpdateEvent;
 import com.expenses.model.Expense;
 import com.expenses.model.ExpenseCategory;
+import com.expenses.model.ExpenseImage;
 import com.expenses.model.ExpenseUser;
 
 @ApplicationScoped
@@ -82,5 +83,9 @@ public class ExpenseDB {
 		query.setParameter("name", name);
 		query.setParameter("user_id", expenseUser);
 		return (ExpenseCategory) query.getSingleResult();
+	}
+	
+	public ExpenseImage getExpenseImageById(Integer id){
+		return em.find(ExpenseImage.class, id);
 	}
 }

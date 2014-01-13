@@ -1,5 +1,7 @@
 package com.expenses.service;
 
+import java.util.logging.Logger;
+
 import javax.ejb.Stateless;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
@@ -7,9 +9,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import com.expenses.model.Expense;
+import com.expenses.model.ExpenseImage;
 
 @Stateless
 public class ExpenseService {
+	
+	@Inject
+	private Logger log;
 
 	@Inject
 	private EntityManager em;
@@ -21,11 +27,23 @@ public class ExpenseService {
 		em.persist(e);
 		expenseEvtSrc.fire(e);
 	}
+	
+	public void updateExpenseImage(Expense e, ExpenseImage i) {
+		log.info("Trying to merge " + e + ": " + e.getId());
+		e = em.merge(e);
+		i.setExpense(e);
+		em.persist(i);
+	}
 
 	public void removeExpense(Expense expense) {
-		String removeString = "delete from Expense where id=:ID";
-		Query query = em.createQuery(removeString).setParameter("ID", expense.getId());
-		query.executeUpdate();
+		String removeExpenseString = "delete from Expense where id=:ID";
+		String removeImageString = "delete from ExpenseImage where id=:ID";
+		if (expense.getExpenseImage() != null){
+			Query imageQuery = em.createQuery(removeImageString).setParameter("ID", expense.getExpenseImage().getId());
+			imageQuery.executeUpdate();
+		}
+		Query expenseQuery = em.createQuery(removeExpenseString).setParameter("ID", expense.getId());
+		expenseQuery.executeUpdate();
 		expenseEvtSrc.fire(expense);
 	}
 }

@@ -81,13 +81,13 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-			<dependency>  
-                <groupId>org.richfaces</groupId>  
-                <artifactId>richfaces-bom</artifactId>  
-                <version>4.3.2.Final</version>  
-                <scope>import</scope>  
-                <type>pom</type>  
-            </dependency>  
+			<dependency>
+				<groupId>org.richfaces</groupId>
+				<artifactId>richfaces-bom</artifactId>
+				<version>4.3.4.Final</version>
+				<scope>import</scope>
+				<type>pom</type>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -214,6 +214,7 @@
 			<groupId>org.richfaces.core</groupId>
 			<artifactId>richfaces-core-impl</artifactId>
 		</dependency>
+
 
 		<!-- <dependency> <groupId>javax.servlet</groupId> <artifactId>jstl</artifactId> 
 			<version>1.2</version> <scope>provided</scope> </dependency> <dependency> 

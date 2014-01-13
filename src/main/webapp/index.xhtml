@@ -21,10 +21,11 @@
 	xmlns:h="http://java.sun.com/jsf/html"
 	xmlns:c="http://java.sun.com/jsp/jstl/core"
 	template="/WEB-INF/templates/default.xhtml"
-                xmlns:rich="http://richfaces.org/rich">
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j">
 	<h:outputScript name="jsf.js" library="javax.faces" target="head" />
 	<ui:define name="globalnav">
-	<h:form>
+		<h:form>
 	Hello, #{username} #{userID}! 
 	</h:form>
 	</ui:define>
@@ -77,14 +78,14 @@
 		<h:form rendered="#{displayController.viewFilter}">
 			<!-- Choosing filter type -->
 			<h:outputLabel value="Filter By:" />
-			<c:forEach items="#{filters}" var="filter" >
+			<c:forEach items="#{filters}" var="filter">
 				<h:commandLink value="#{filter.filterName}" styleClass="navElement"
 					action="#{filterController.updateViews}"
 					rendered="#{!filterController.renderedViews[filters.indexOf(filter)]}">
 					<f:actionListener binding="#{filterController.setSelected(filter)}" />
 				</h:commandLink>
 			</c:forEach>
-			<br/>
+			<br />
 			<!-- Category filtering -->
 			<h:outputLabel value="Category:"
 				rendered='#{filterController.renderedViews[1]}' for="filterByCat" />
@@ -95,51 +96,54 @@
 				<f:selectItems value="#{categories}" var="cat" itemValue="#{cat}"
 					itemLabel="#{cat.name}" itemDescription="#{cat.description}" />
 			</h:selectOneMenu>
-			<br/>
+			<br />
 			<!-- Description filtering -->
 			<h:outputLabel value="Description:"
-				rendered='#{filterController.renderedViews[2]}' for="filterByDescription" />
+				rendered='#{filterController.renderedViews[2]}'
+				for="filterByDescription" />
 			<h:inputText value="#{filterController.selected.filterBy}"
-				rendered='#{filterController.renderedViews[2]}' id="filterByDescription" />
+				rendered='#{filterController.renderedViews[2]}'
+				id="filterByDescription" />
 			<br />
-			
+
 			<!-- Date Filtering -->
 			<h:outputLabel value="Begin:"
-				rendered='#{filterController.renderedViews[3]}' for="filterByDateBegin" />
+				rendered='#{filterController.renderedViews[3]}'
+				for="filterByDateBegin" />
 			<h:inputText value="#{filterController.selected.filterBy.begin}"
-				 id="filterByDateBegin"
-				 rendered="#{filterController.renderedViews[3]}">
-				<f:convertDateTime dateStyle="short"/>
-			</h:inputText>
-			<br />
-			<h:outputLabel value="End:"
-				rendered='#{filterController.renderedViews[3]}' for="filterByDateEnd" />
-			<h:inputText value="#{filterController.selected.filterBy.end}" 
-				id="filterByDateEnd"
+				id="filterByDateBegin"
 				rendered="#{filterController.renderedViews[3]}">
 				<f:convertDateTime dateStyle="short" />
 			</h:inputText>
-			<br/>
+			<br />
+			<h:outputLabel value="End:"
+				rendered='#{filterController.renderedViews[3]}'
+				for="filterByDateEnd" />
+			<h:inputText value="#{filterController.selected.filterBy.end}"
+				id="filterByDateEnd" rendered="#{filterController.renderedViews[3]}">
+				<f:convertDateTime dateStyle="short" />
+			</h:inputText>
+			<br />
 
 			<h:commandButton value="Filter"
 				action="#{filterController.applyFilter}" />
 		</h:form>
 	</ui:define>
 	<ui:define name="content">
-		<h:dataTable value="#{expenses}" var="expense"
-			styleClass="simpletablestyle">
-			<h:column>
+		<rich:dataTable value="#{expenses}" var="expense"
+			 rowKeyVar="row">
+			<rich:column>
 				<f:facet name="header">Date</f:facet>
 				<h:outputText value="#{expense.entered}">
 					<f:convertDateTime dateStyle="short" type="date" />
 				</h:outputText>
-    		</h:column>
-			<h:column>
+			</rich:column>
+			<rich:column>
 				<f:facet name="header">Description</f:facet>
 				#{expense.description}
 				<f:facet name="footer">Total: </f:facet>
-			</h:column>
-			<h:column>
+			</rich:column>
+			<rich:column>
 				<f:facet name="header">Cost</f:facet>
 
 				<h:outputText value="#{expense.cost}">
@@ -150,22 +154,51 @@
 						<f:convertNumber type="currency" currencySymbol="$" />
 					</h:outputText>
 				</f:facet>
-			</h:column>
-			<h:column>
+			</rich:column>
+			<rich:column>
 				<f:facet name="header">Category</f:facet>
     			#{expense.expenseCategory.name}
-    		</h:column>
-    		<h:column>
-    			<f:facet name="header">Image</f:facet>
-    			<h:form>
-    				<h:commandLink value="View Image"></h:commandLink>
-    			</h:form>
-    		</h:column>
-    		<h:column>
-    			<h:form>
-    			<h:commandLink action="#{expenseController.remove(expense)}" value="X"/>
-    			</h:form>
-    		</h:column>
-		</h:dataTable>
+    		</rich:column>
+			<rich:column>
+				<f:facet name="header">Image</f:facet>
+				<h:form>
+					<a4j:commandLink value="Upload Image"
+						rendered="#{expense.expenseImage == null}"
+						oncomplete="#{rich:component('imageUpload')}.show()">
+						<f:setPropertyActionListener value="#{expense}"
+                            target="#{imageUploadController.currentExpense}" />
+					</a4j:commandLink>
+					<a4j:mediaOutput element="img"
+						createContent="#{imageUploadController.renderImage}"
+						value="#{expense.expenseImage.id}" mimeType="image/jpeg" session="true"
+						cachable="false" width="50%" 
+						rendered="#{expense.expenseImage != null}"/>
+				</h:form>
+			</rich:column>
+			<rich:column>
+				<h:form>
+					<h:commandLink action="#{expenseController.remove(expense)}"
+						value="X" />
+				</h:form>
+			</rich:column>
+		</rich:dataTable>
+		<rich:popupPanel id="imageUpload" autosized="true" modal="true">
+			<f:facet name="header"> Image Upload </f:facet>
+			<f:facet name="controls">
+				<h:outputLink value="#"
+					onclick="#{rich:component('imageUpload')}.hide(); return false;">
+                Close
+            	</h:outputLink>
+			</f:facet>
+			<h:form>
+				<rich:fileUpload acceptedTypes="jpg"
+					fileUploadListener="#{imageUploadController.storeImage}"
+					immediateUpload="true" addLabel="Add Image"
+					ontyperejected="alert('Only JPG files');" maxFilesQuantity="1"
+					onuploadcomplete="#{rich:component('imageUpload')}.hide(); return false;">
+					<a4j:ajax event="uploadcomplete" execute="@none" render="info" />
+				</rich:fileUpload>
+			</h:form>
+		</rich:popupPanel>
 	</ui:define>
 </ui:composition>
