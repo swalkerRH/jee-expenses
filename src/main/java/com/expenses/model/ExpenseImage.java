@@ -22,6 +22,7 @@ public class ExpenseImage implements java.io.Serializable {
 	private int id;
 	private Expense expense;
 	private byte[] imageData;
+	private String mimeType;
 
 	public ExpenseImage() {
 	}
@@ -63,6 +64,15 @@ public class ExpenseImage implements java.io.Serializable {
 
 	public void setImageData(byte[] imageData) {
 		this.imageData = imageData;
+	}
+	
+	@Column(name = "mime_type", nullable = false)
+	public String getMimeType() {
+		return this.mimeType;
+	}
+
+	public void setMimeType(String mimeType) {
+		this.mimeType = mimeType;
 	}
 
 }

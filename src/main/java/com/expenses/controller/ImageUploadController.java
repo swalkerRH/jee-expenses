@@ -38,7 +38,6 @@ public class ImageUploadController implements Serializable {
 	@Inject
 	private ExpenseDB db;
 	
-	
 	@Inject
 	private List<ExpenseImage> fileList;
 	
@@ -48,9 +47,9 @@ public class ImageUploadController implements Serializable {
 		UploadedFile file = fileEvent.getUploadedFile();
 		ExpenseImage image = new ExpenseImage();
 		image.setImageData(file.getData());
-		fileListService.addFile(image);
-		log.info("storeImage current expense is: " + currentExpense);
-		assignImage(currentExpense);
+		image.setMimeType(file.getContentType());
+		log.info("Storing image with mime type: " + file.getContentType());
+		expenseService.updateExpenseImage(currentExpense, image);
 	}
 	
 	public void renderImage(OutputStream out, Object obj) throws IOException{
@@ -58,14 +57,10 @@ public class ImageUploadController implements Serializable {
 		ExpenseImage image = db.getExpenseImageById(imageId);
 		BufferedImage buffImage = ImageIO.read(new ByteArrayInputStream(
 				image.getImageData()));
-		ImageIO.write(buffImage, "jpeg", out);
+		String mimeType = image.getMimeType();
+		ImageIO.write(buffImage, mimeType.substring(mimeType.indexOf("/")+1), out);
 	}
 	
-	public void assignImage(Expense e){
-		ExpenseImage image = fileList.get(0);
-		fileList.remove(0);
-		expenseService.updateExpenseImage(e, image);
-	}
 
 	public Expense getCurrentExpense() {
 		return currentExpense;
