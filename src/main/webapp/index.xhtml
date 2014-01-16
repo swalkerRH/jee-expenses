@@ -27,6 +27,7 @@
 	<ui:define name="globalnav">
 		<h:form>
 	Hello, #{username} #{userID}! 
+		<rich:messages />
 	</h:form>
 	</ui:define>
 	<ui:define name="localnav">
@@ -125,13 +126,13 @@
 			</h:inputText>
 			<br />
 
-			<h:commandButton value="Filter"
-				action="#{filterController.applyFilter}" />
+			<a4j:commandButton value="Filter"
+				action="#{filterController.applyFilter}" render="expenseTable"/>
 		</h:form>
 	</ui:define>
 	<ui:define name="content">
 		<rich:dataTable value="#{expenses}" var="expense" rowKeyVar="row"
-			width="100%">
+			width="100%" id="expenseTable" >
 			<rich:column>
 				<f:facet name="header">Date</f:facet>
 				<h:outputText value="#{expense.entered}">
@@ -183,6 +184,18 @@
 				<h:form>
 					<h:commandLink action="#{expenseController.remove(expense)}"
 						value="X" />
+				</h:form>
+			</rich:column>
+			<rich:column>
+				<f:facet name="header">
+					<h:form>
+						<h:commandLink value="Generate Report" action="#{selectionController.getReport}"/>
+					</h:form>
+				</f:facet>
+				<h:form>
+					<h:selectBooleanCheckbox value="#{selectedExpenses[expense.id]}">
+						<a4j:ajax event="change"/>
+					</h:selectBooleanCheckbox>
 				</h:form>
 			</rich:column>
 		</rich:dataTable>

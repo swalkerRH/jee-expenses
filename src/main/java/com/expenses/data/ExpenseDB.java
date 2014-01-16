@@ -88,4 +88,8 @@ public class ExpenseDB {
 	public ExpenseImage getExpenseImageById(Integer id){
 		return em.find(ExpenseImage.class, id);
 	}
+
+	public Expense getExpenseById(Integer id) {
+		return em.find(Expense.class, id );
+	}
 }

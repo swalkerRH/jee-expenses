@@ -3,9 +3,13 @@ package com.expenses.controller;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.SessionScoped;
+import javax.faces.application.FacesMessage;
+import javax.faces.component.UIComponent;
+import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -23,6 +27,9 @@ public class FilterController implements Serializable{
 	
 	@Inject
 	private List<FilterOption<? extends Object>> filters;
+	
+	@Inject
+	private Map<Integer, Boolean> selectedExpenses;
 	
 	private List<Boolean> renderedViews;
 	
@@ -44,6 +51,8 @@ public class FilterController implements Serializable{
 	}
 	
 	public void applyFilter(){
+		FacesContext.getCurrentInstance().addMessage(null, 
+				new FacesMessage("Warning: expense report generation from the filter view is not supported yet."));
 		filterService.setFilterOption(selected);
 	}
 	
