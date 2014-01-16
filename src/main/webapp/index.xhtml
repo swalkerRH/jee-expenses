@@ -27,6 +27,7 @@
 	<ui:define name="globalnav">
 		<h:form>
 	Hello, #{username} #{userID}! 
+			<h:commandLink value="logout" action="#{logoutController.logout}"/>
 		<rich:messages />
 	</h:form>
 	</ui:define>
