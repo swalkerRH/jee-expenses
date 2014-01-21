@@ -10,8 +10,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.expenses.annotation.CurrentFilter;
+import com.expenses.annotation.CurrentUser;
 import com.expenses.filter.FilterOption;
 import com.expenses.model.Expense;
+import com.expenses.model.ExpenseUser;
 
 @RequestScoped
 public class ExpensesProvider {
@@ -23,11 +25,14 @@ public class ExpensesProvider {
 	
 	private List<Expense> expenses;
 	
+	@Inject @CurrentUser
+	private ExpenseUser expenseUser;
+	
 	private float total;
 	
 	@PostConstruct
 	public void initExpenses(){
-		expenses = db.getExpensesById();
+		expenses = db.getExpensesById(expenseUser);
 		calculateTotal();
 	}
 	

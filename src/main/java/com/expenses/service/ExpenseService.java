@@ -35,6 +35,10 @@ public class ExpenseService {
 		em.persist(i);
 	}
 
+	public void updateExpenseImage(ExpenseImage i) {
+		em.merge(i);
+		log.info("Updated image");
+	}
 	public void removeExpense(Expense expense) {
 		String removeExpenseString = "delete from Expense where id=:ID";
 		String removeImageString = "delete from ExpenseImage where id=:ID";

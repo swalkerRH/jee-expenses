@@ -9,7 +9,9 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.expenses.annotation.CurrentUser;
 import com.expenses.model.ExpenseCategory;
+import com.expenses.model.ExpenseUser;
 
 @RequestScoped
 public class CategoriesProvider {
@@ -17,11 +19,14 @@ public class CategoriesProvider {
 	@Inject
 	ExpenseDB db;
 	
+	@Inject @CurrentUser
+	private ExpenseUser expenseUser;
+	
 	private List<ExpenseCategory> categories;
 	
 	@PostConstruct
 	public void initCategories(){
-		categories = db.getExpenseCategoriesById();
+		categories = db.getExpenseCategoriesById(expenseUser);
 	}
 	
 	@Produces

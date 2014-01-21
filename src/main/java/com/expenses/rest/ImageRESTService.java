@@ -1,7 +1,11 @@
 package com.expenses.rest;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.inject.Inject;
 import javax.ws.rs.FormParam;
@@ -17,9 +21,13 @@ import com.expenses.model.Expense;
 import com.expenses.model.ExpenseImage;
 import com.expenses.service.ExpenseService;
 import com.expenses.util.OverwriteImageException;
+import com.expenses.util.UnsupportedMimeTypeException;
 
 @Path("/image")
 public class ImageRESTService {
+	
+	@Inject
+	private Logger log;
 	
 	@Inject
 	private ExpenseDB db;
@@ -29,7 +37,8 @@ public class ImageRESTService {
 
 	/**
 	 * Takes an expenseId and mime_type and allocates the image id
-	 * returns a map with the image-id added to the request
+	 * returns a map with the image id added to the request
+	 * TODO Change to multipart
 	 * @param expenseId
 	 * @param mimeType
 	 * @return
@@ -40,7 +49,13 @@ public class ImageRESTService {
 	public Map<String, String> requestImageSpace(
 			@FormParam("expense_id") Integer expenseId,
 			@FormParam("mime_type") String mimeType
-			) throws OverwriteImageException{
+			) throws OverwriteImageException, UnsupportedMimeTypeException{
+		if(!mimeType.equals("image/jpeg") && 
+				!mimeType.equals("image/png") &&
+				!mimeType.equals("image/gif")){
+			throw new UnsupportedMimeTypeException("Unsupported Mime Type:" + mimeType +", must be image/[jpeg|png|gif]");
+		}
+		
 		Expense exp = db.getExpenseById(expenseId);
 		if(exp.getExpenseImage() != null){
 			throw new OverwriteImageException("Tryed to overwrite the image for expense " + expenseId);
@@ -60,10 +75,20 @@ public class ImageRESTService {
 	@Path("/{id:[0-9][0-9]*}")
 	public void putImage(
 			@PathParam("id") Integer imageId,
-			@FormParam("byte_data") byte[] byteData){
+			InputStream stream) throws IOException{
 		ExpenseImage im = db.getExpenseImageById(imageId);
-		im.setImageData(byteData);
-		expenseService.updateExpenseImage(im.getExpense(), im);
+		byte[] buffer = new byte[1024];
+		ByteArrayOutputStream out = new ByteArrayOutputStream(10240);
+		while(stream.read(buffer, 0, buffer.length) != -1){
+			out.write(buffer);
+		}
+		log.info("recieving the last bytes");
+		out.write(buffer);
+		stream.close();
+		out.close();
+		
+		im.setImageData(out.toByteArray());
+		expenseService.updateExpenseImage(im);
 	}
 	
 	@GET

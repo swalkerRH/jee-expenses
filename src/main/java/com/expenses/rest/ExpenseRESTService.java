@@ -13,6 +13,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -24,6 +25,7 @@ import javax.ws.rs.core.Response;
 import com.expenses.data.ExpenseDB;
 import com.expenses.model.Expense;
 import com.expenses.model.ExpenseCategory;
+import com.expenses.model.ExpenseUser;
 import com.expenses.service.ExpenseService;
 
 @Path("/expense")
@@ -42,27 +44,34 @@ public class ExpenseRESTService {
 	@Inject
 	private ExpenseService expenseService;
 
-	@GET
+	@POST
 	@Path("/")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<Expense> getExpenses() {
-		List<Expense> expenseList = db.getExpensesById();
+	public List<Expense> getExpenses(
+			@FormParam("username") String username,
+			@FormParam("password") String password) {
+		ExpenseUser expUser = db.authenticate(username, password);
+		if(expUser == null){
+			return null;
+		}
+		List<Expense> expenseList = db.getExpensesById(expUser);
 		log.info("Rest service got " + expenseList.size() + " results");
 		return expenseList;
 	}
 
-	@GET
+	@POST
 	@Path("/{category:.*}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<Expense> expensesByCategory(
 			@PathParam("category") String categoryName) {
-		ExpenseCategory category = db.getExpenseCategoryByName(categoryName);
-		return db.getExpensesInCategory(category);
+		ExpenseCategory category = db.getExpenseCategoryByName(new ExpenseUser(), categoryName);
+		return db.getExpensesInCategory(new ExpenseUser(), category);
 	}
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
+	@Path("/create/")
 	public Response createExpense(Expense expense){
 		Response.ResponseBuilder builder = null;
 		

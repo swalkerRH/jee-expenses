@@ -17,36 +17,27 @@ import com.expenses.model.Expense;
 import com.expenses.model.ExpenseCategory;
 import com.expenses.model.ExpenseImage;
 import com.expenses.model.ExpenseUser;
-
 @ApplicationScoped
-public class ExpenseDB {
+public class ExpenseDB{
 	
 	@Inject
 	private Logger log;
 	
 	@Inject
 	private Event<UserUpdateEvent> uuEventSrc;
-	
-	private ExpenseUser expenseUser;
 
 	@Inject
 	private EntityManager em;
 	
 
-	public List<Expense> getExpensesById() {
-		if(expenseUser== null){
-			uuEventSrc.fire(new UserUpdateEvent());
-		}
+	public List<Expense> getExpensesById(ExpenseUser expenseUser) {
 		Query query = em.createQuery("select e from Expense e where e.expenseUser= :user_id ");
 		query.setParameter("user_id", expenseUser);
 		log.info("Got " + expenseUser.getUsername() + "'s expenses");
 		return query.getResultList();
 	}
 
-	public List<ExpenseCategory> getExpenseCategoriesById() {
-		if(expenseUser== null){
-			uuEventSrc.fire(new UserUpdateEvent());
-		}
+	public List<ExpenseCategory> getExpenseCategoriesById(ExpenseUser expenseUser) {
 		Query query = em.createQuery("select c from ExpenseCategory c where c.expenseUser= :user_id ");
 		log.info("made query");
 		query.setParameter("user_id", expenseUser);
@@ -60,14 +51,11 @@ public class ExpenseDB {
 		Root<ExpenseUser> root = criteria.from(ExpenseUser.class);
 		criteria.select(root);
 		criteria.where(builder.equal(root.get("username"), username));
-		expenseUser = em.createQuery(criteria).getSingleResult();
+		ExpenseUser expenseUser = em.createQuery(criteria).getSingleResult();
 		return expenseUser;
 	}
 
-	public List<Expense> getExpensesInCategory(ExpenseCategory category) {
-		if(expenseUser== null){
-			uuEventSrc.fire(new UserUpdateEvent());
-		}
+	public List<Expense> getExpensesInCategory(ExpenseUser expenseUser, ExpenseCategory category) {
 		Query query = em.createQuery("select e from Expense e where e.expenseUser= :user_id and e.expenseCategory = :cat");
 		query.setParameter("user_id", expenseUser);
 		query.setParameter("cat", category);
@@ -75,14 +63,19 @@ public class ExpenseDB {
 		return query.getResultList();
 	}
 	
-	public ExpenseCategory getExpenseCategoryByName(String name){
-		if(expenseUser== null){
-			uuEventSrc.fire(new UserUpdateEvent());
-		}
+	public ExpenseCategory getExpenseCategoryByName(ExpenseUser expenseUser, String name){
 		Query query = em.createQuery("select c from ExpenseCategory c where c.name = :name and c.expenseUser = :user_id");
 		query.setParameter("name", name);
 		query.setParameter("user_id", expenseUser);
 		return (ExpenseCategory) query.getSingleResult();
+	}
+	
+	public ExpenseUser authenticate(String username, String password){
+		ExpenseUser dbUser = getExpenseUser(username);
+		if(dbUser.getPassword().equals(password)){
+			return dbUser;
+		}
+		return null;
 	}
 	
 	public ExpenseImage getExpenseImageById(Integer id){

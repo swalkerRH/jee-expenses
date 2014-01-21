@@ -30,6 +30,13 @@
 		</web-resource-collection>
 	</security-constraint>
 	<security-constraint>
+	    <display-name>Rest Unprotected (independent)</display-name>
+	    <web-resource-collection>
+	        <web-resource-name>rest</web-resource-name>
+	        <url-pattern>/rest/*</url-pattern>
+	    </web-resource-collection>
+	</security-constraint>
+	<security-constraint>
 		<display-name>Admin Area</display-name>
 		<web-resource-collection>
 			<web-resource-name>admin_resources</web-resource-name>
@@ -74,6 +81,7 @@
 		<description>User</description>
 		<role-name>user</role-name>
 	</security-role>
+	<!-- Login configuration -->
 	<login-config>
 		<auth-method>FORM</auth-method>
 		<form-login-config>
