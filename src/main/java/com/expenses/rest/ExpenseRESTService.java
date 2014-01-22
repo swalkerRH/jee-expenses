@@ -1,20 +1,16 @@
 package com.expenses.rest;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
+import javax.persistence.NoResultException;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -39,74 +35,90 @@ public class ExpenseRESTService {
 	private Logger log;
 	
 	@Inject
-	private Validator validator;
-	
-	@Inject
 	private ExpenseService expenseService;
 
 	@POST
 	@Path("/")
+	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<Expense> getExpenses(
-			@FormParam("username") String username,
-			@FormParam("password") String password) {
-		ExpenseUser expUser = db.authenticate(username, password);
+	public Response getExpenses( //List<Expense>
+			ExpenseUser inUser) {
+		ExpenseUser expUser = db.authenticate(inUser.getUsername(), inUser.getPassword());
 		if(expUser == null){
-			return null;
+			return Response.serverError().entity("Authentication Error").build();
 		}
 		List<Expense> expenseList = db.getExpensesById(expUser);
 		log.info("Rest service got " + expenseList.size() + " results");
-		return expenseList;
+		return Response.ok().entity(expenseList).build();
 	}
 
 	@POST
 	@Path("/{category:.*}")
+	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<Expense> expensesByCategory(
-			@PathParam("category") String categoryName) {
-		ExpenseCategory category = db.getExpenseCategoryByName(new ExpenseUser(), categoryName);
-		return db.getExpensesInCategory(new ExpenseUser(), category);
+	public Response expensesByCategory(
+			ExpenseUser inUser,
+			@PathParam("category") String categoryName
+			) {
+		ExpenseUser expUser = db.authenticate(inUser.getUsername(), inUser.getPassword());
+		if(expUser == null){
+			return Response.serverError().entity("Authentication Error").build();
+		}
+		try{
+			ExpenseCategory category = db.getExpenseCategoryByName(expUser, categoryName);
+			List<Expense> expenses = db.getExpensesInCategory(expUser, category);
+			return Response.ok().entity(expenses).build();
+		} catch(NoResultException nre){
+			return Response.ok().entity(new ArrayList<Expense>()).build();
+		}
 	}
 
+	/**
+	 * @param expenseMap
+	 * 		needs to be in the form of
+	 * 				user : { username: name, password: password},
+	 * 				expense: {description: desc, cost: cost, category: category}
+	 * @return
+	 */
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/create/")
-	public Response createExpense(Expense expense){
-		Response.ResponseBuilder builder = null;
-		
+	public Response createExpense(
+			Map<String, Map<String, Object>> expenseMap
+			){
+		String username = null, password = null, description = null, category = null;
+		Float cost = (float) 0.0;
 		try{
-			validate(expense);
-			expenseService.addExpense(expense);
-			builder = Response.ok();
-			
-		} catch (ConstraintViolationException e){
-			builder = createViolationResponse(e.getConstraintViolations());
+			username = (String) expenseMap.get("user").get("username");
+			password = (String) expenseMap.get("user").get("password");
+			description = (String) expenseMap.get("expense").get("description");
+			category = (String) expenseMap.get("expense").get("category");
+			cost = Float.valueOf((String) expenseMap.get("expense").get("cost"));
+		} catch(Exception exp){
+			return Response.serverError().entity("Could not translate your request, format error").build();
 		}
-		
-		return builder.build();
-		
-	}
-
-	private <T> void validate(T entity) throws ConstraintViolationException{
-		// Create a bean validator and check for issues.
-		Set<ConstraintViolation<T>> violations = validator.validate(entity);
-
-		if (!violations.isEmpty()) {
-			throw new ConstraintViolationException(
-					new HashSet<ConstraintViolation<?>>(violations));
+		ExpenseUser expUser = db.authenticate(username, password);
+		ExpenseCategory cat = null;
+		if(expUser == null){
+			return Response.serverError().entity("Authentication Error").build();
 		}
+		try {
+			cat = db.getExpenseCategoryByName(expUser, category);
+		} catch(Exception e){
+			return Response.serverError().entity("Problem with category, does it exist?").build();
+		}
+		Expense exp = new Expense();
+		exp.setCost(cost);
+		exp.setDescription(description);
+		exp.setExpenseCategory(cat);
+		exp.setEntered(new Date());
+		exp.setExpenseUser(expUser);
+		try {
+			expenseService.addRESTExpense(exp);
+		} catch (Exception e){
+			return Response.serverError().entity("There was a problem with adding the expense:" +e.getMessage()).build();
+		}
+		return Response.ok().build();	
 	}
-	
-	private Response.ResponseBuilder createViolationResponse(Set<ConstraintViolation<?>> violations) {
-        log.fine("Validation completed. violations found: " + violations.size());
-
-        Map<String, String> responseObj = new HashMap<String, String>();
-
-        for (ConstraintViolation<?> violation : violations) {
-            responseObj.put(violation.getPropertyPath().toString(), violation.getMessage());
-        }
-
-        return Response.status(Response.Status.BAD_REQUEST).entity(responseObj);
-    }
 }

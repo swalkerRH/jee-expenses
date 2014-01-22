@@ -1,13 +1,12 @@
 package com.expenses.rest;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -15,10 +14,15 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.bouncycastle.util.encoders.Base64;
 
 import com.expenses.data.ExpenseDB;
 import com.expenses.model.Expense;
 import com.expenses.model.ExpenseImage;
+import com.expenses.model.ExpenseUser;
 import com.expenses.service.ExpenseService;
 import com.expenses.util.OverwriteImageException;
 import com.expenses.util.UnsupportedMimeTypeException;
@@ -39,26 +43,43 @@ public class ImageRESTService {
 	 * Takes an expenseId and mime_type and allocates the image id
 	 * returns a map with the image id added to the request
 	 * TODO Change to multipart
-	 * @param expenseId
-	 * @param mimeType
+	 * @param inMap
+	 * 			needs to be in the format:
+	 * 					user: {username:username, password:password},
+	 * 					meta_data: {mime_type:mimetype, expense_id:expense_id}
 	 * @return
-	 * @throws OverwriteImageException
 	 */
 	@POST
-	@Produces("application/json")
-	public Map<String, String> requestImageSpace(
-			@FormParam("expense_id") Integer expenseId,
-			@FormParam("mime_type") String mimeType
-			) throws OverwriteImageException, UnsupportedMimeTypeException{
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response requestImageSpace(
+			Map<String,Map<String, Object>> inMap
+			){
+		String username = null, password = null;
+		String mimeType = null;
+		Integer expenseId;
+		try{
+			username = (String) inMap.get("user").get("username");
+			password = (String) inMap.get("user").get("password");
+			mimeType = (String) inMap.get("meta_data").get("mime_type");
+			expenseId = (Integer) inMap.get("meta_data").get("expense_id");
+		} catch(Exception e){
+			return Response.serverError().entity("Wrong request format").build();
+		}
+		
+		if(db.authenticate(username, password) == null)
+			return Response.serverError().entity("Authentication error").build();
+		
+		
 		if(!mimeType.equals("image/jpeg") && 
 				!mimeType.equals("image/png") &&
 				!mimeType.equals("image/gif")){
-			throw new UnsupportedMimeTypeException("Unsupported Mime Type:" + mimeType +", must be image/[jpeg|png|gif]");
+			return Response.serverError().entity("bad mime type").build();
 		}
 		
 		Expense exp = db.getExpenseById(expenseId);
 		if(exp.getExpenseImage() != null){
-			throw new OverwriteImageException("Tryed to overwrite the image for expense " + expenseId);
+			return Response.serverError().entity("Trying to overwrite image").build();
 		}
 		ExpenseImage im = new ExpenseImage();
 		im.setExpense(exp);
@@ -68,27 +89,40 @@ public class ImageRESTService {
 		response.put("image_id", String.valueOf(im.getId()));
 		response.put("expense_id", String.valueOf(expenseId));
 		response.put("mime_type", mimeType);
-		return response;
+		return Response.ok().entity(response).build();
 	}
 	
+	/**
+	 * 
+	 * @param imageId
+	 * takes the format of
+	 * 		user: { username:username, password:password},
+	 * 		image: base64_image_string
+	 */
+	@SuppressWarnings("unchecked")
 	@PUT
 	@Path("/{id:[0-9][0-9]*}")
-	public void putImage(
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response putImage(
 			@PathParam("id") Integer imageId,
-			InputStream stream) throws IOException{
+			Map<String, Object> imageMap) throws IOException{
 		ExpenseImage im = db.getExpenseImageById(imageId);
-		byte[] buffer = new byte[1024];
-		ByteArrayOutputStream out = new ByteArrayOutputStream(10240);
-		while(stream.read(buffer, 0, buffer.length) != -1){
-			out.write(buffer);
-		}
-		log.info("recieving the last bytes");
-		out.write(buffer);
-		stream.close();
-		out.close();
+		String username = null, password=null, image_str=null;
+		ExpenseUser exp = db.authenticate(username, password);
+		if(exp == null)
+			return Response.serverError().entity("Authentication Error").build();
 		
-		im.setImageData(out.toByteArray());
+		try{
+			username = ((Map<String,String>) imageMap.get("user")).get("username");
+			password = ((Map<String,String>) imageMap.get("user")).get("password");
+			image_str = (String) imageMap.get("image");
+		} catch(Exception e){
+			return Response.serverError().entity("Wrong argument format").build();
+		}
+		byte[] buffer = Base64.decode(image_str);
+		im.setImageData(buffer);
 		expenseService.updateExpenseImage(im);
+		return Response.ok().build();
 	}
 	
 	@GET

@@ -34,6 +34,10 @@ public class ExpenseService {
 		i.setExpense(e);
 		em.persist(i);
 	}
+	
+	public void addRESTExpense(Expense e) {
+		em.persist(e);
+	}
 
 	public void updateExpenseImage(ExpenseImage i) {
 		em.merge(i);
