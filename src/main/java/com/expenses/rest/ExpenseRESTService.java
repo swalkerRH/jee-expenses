@@ -45,7 +45,7 @@ public class ExpenseRESTService {
 			ExpenseUser inUser) {
 		ExpenseUser expUser = db.authenticate(inUser.getUsername(), inUser.getPassword());
 		if(expUser == null){
-			return Response.serverError().entity("Authentication Error").build();
+			return Response.serverError().entity("{\"message\":\"Authentication Error\"}").build();
 		}
 		List<Expense> expenseList = db.getExpensesById(expUser);
 		log.info("Rest service got " + expenseList.size() + " results");
@@ -62,7 +62,7 @@ public class ExpenseRESTService {
 			) {
 		ExpenseUser expUser = db.authenticate(inUser.getUsername(), inUser.getPassword());
 		if(expUser == null){
-			return Response.serverError().entity("Authentication Error").build();
+			return Response.serverError().entity("{\"message\":\"Authentication Error\"}").build();
 		}
 		try{
 			ExpenseCategory category = db.getExpenseCategoryByName(expUser, categoryName);
@@ -96,17 +96,17 @@ public class ExpenseRESTService {
 			category = (String) expenseMap.get("expense").get("category");
 			cost = Float.valueOf((String) expenseMap.get("expense").get("cost"));
 		} catch(Exception exp){
-			return Response.serverError().entity("Could not translate your request, format error").build();
+			return Response.serverError().entity("{\"message\":\"Could not translate your request, format error\"}").build();
 		}
 		ExpenseUser expUser = db.authenticate(username, password);
 		ExpenseCategory cat = null;
 		if(expUser == null){
-			return Response.serverError().entity("Authentication Error").build();
+			return Response.serverError().entity("{\"message\":\"Authentication Error\"}").build();
 		}
 		try {
 			cat = db.getExpenseCategoryByName(expUser, category);
 		} catch(Exception e){
-			return Response.serverError().entity("Problem with category, does it exist?").build();
+			return Response.serverError().entity("{\"message\":\"Problem with category, does it exist?\"}").build();
 		}
 		Expense exp = new Expense();
 		exp.setCost(cost);
@@ -117,8 +117,30 @@ public class ExpenseRESTService {
 		try {
 			expenseService.addRESTExpense(exp);
 		} catch (Exception e){
-			return Response.serverError().entity("There was a problem with adding the expense:" +e.getMessage()).build();
+			return Response.serverError().entity("{\"message\":\"There was a problem with adding the expense:" +e.getMessage() + "\"}").build();
 		}
 		return Response.ok().build();	
+	}
+	
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("/remove/{id:[0-9][0-9]*}")
+	public Response removeExpense(
+			@PathParam("id") int id,
+			ExpenseUser inUser){
+		log.info("trying to delete");
+		ExpenseUser expUser = db.authenticate(inUser.getUsername(), inUser.getPassword());
+		if(expUser == null){
+			log.info("Authentication failure for " + inUser.getUsername());
+			return Response.serverError().entity("{\"message\":\"Authentication Error\"}").build();
+		}
+		Expense expToRemove = db.getExpenseById(id);
+		if(!expToRemove.getExpenseUser().getUsername().equals(expUser.getUsername())){
+			log.info(inUser.getUsername() + " tried to remove unowned expense");
+			return Response.serverError().entity("{\"message\":\"Tried to Delete Non-owned Expense\"}").build();
+		}
+		expenseService.removeExpense(expToRemove, false);
+		return Response.ok().entity("{\"message\":\"Successfully removed expense\"}").build();
 	}
 }

@@ -42,8 +42,11 @@ public class ExpenseService {
 	public void updateExpenseImage(ExpenseImage i) {
 		em.merge(i);
 		log.info("Updated image");
+		
 	}
-	public void removeExpense(Expense expense) {
+	
+	public void removeExpense(Expense expense, boolean jsfContext){
+		log.info("calling removeExpense with " + jsfContext);
 		String removeExpenseString = "delete from Expense where id=:ID";
 		String removeImageString = "delete from ExpenseImage where id=:ID";
 		if (expense.getExpenseImage() != null){
@@ -52,6 +55,10 @@ public class ExpenseService {
 		}
 		Query expenseQuery = em.createQuery(removeExpenseString).setParameter("ID", expense.getId());
 		expenseQuery.executeUpdate();
-		expenseEvtSrc.fire(expense);
+		if(jsfContext)
+			expenseEvtSrc.fire(expense);
+	}
+	public void removeExpense(Expense expense) {
+		removeExpense(expense, true);
 	}
 }
