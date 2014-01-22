@@ -127,20 +127,24 @@ public class ExpenseRESTService {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/remove/{id:[0-9][0-9]*}")
 	public Response removeExpense(
-			@PathParam("id") int id,
-			ExpenseUser inUser){
+			ExpenseUser inUser,
+			@PathParam("id") int id){
 		log.info("trying to delete");
+		try{
 		ExpenseUser expUser = db.authenticate(inUser.getUsername(), inUser.getPassword());
 		if(expUser == null){
 			log.info("Authentication failure for " + inUser.getUsername());
 			return Response.serverError().entity("{\"message\":\"Authentication Error\"}").build();
 		}
 		Expense expToRemove = db.getExpenseById(id);
-		if(!expToRemove.getExpenseUser().getUsername().equals(expUser.getUsername())){
+		if(!expToRemove.getExpenseUser().getUsername().equals(inUser.getUsername())){
 			log.info(inUser.getUsername() + " tried to remove unowned expense");
 			return Response.serverError().entity("{\"message\":\"Tried to Delete Non-owned Expense\"}").build();
 		}
 		expenseService.removeExpense(expToRemove, false);
 		return Response.ok().entity("{\"message\":\"Successfully removed expense\"}").build();
+		} catch (Exception e){
+			return Response.serverError().entity("{\"message\":\"Unknown Error\"}").build();
+		}
 	}
 }
