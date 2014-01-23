@@ -7,7 +7,6 @@ import java.util.logging.Logger;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -24,8 +23,7 @@ import com.expenses.model.Expense;
 import com.expenses.model.ExpenseImage;
 import com.expenses.model.ExpenseUser;
 import com.expenses.service.ExpenseService;
-import com.expenses.util.OverwriteImageException;
-import com.expenses.util.UnsupportedMimeTypeException;
+import com.expenses.util.ResponseMessage;
 
 @Path("/image")
 public class ImageRESTService {
@@ -55,6 +53,7 @@ public class ImageRESTService {
 	public Response requestImageSpace(
 			Map<String,Map<String, Object>> inMap
 			){
+		log.info("trying to create space for image");
 		String username = null, password = null;
 		String mimeType = null;
 		Integer expenseId;
@@ -64,22 +63,25 @@ public class ImageRESTService {
 			mimeType = (String) inMap.get("meta_data").get("mime_type");
 			expenseId = (Integer) inMap.get("meta_data").get("expense_id");
 		} catch(Exception e){
-			return Response.serverError().entity("Wrong request format").build();
+			log.info("got bad data format:" +e.getMessage());
+			return Response.serverError().entity(new ResponseMessage("Wrong request format")).build();
 		}
 		
 		if(db.authenticate(username, password) == null)
-			return Response.serverError().entity("Authentication error").build();
+			return Response.serverError().entity(new ResponseMessage("Authentication error")).build();
 		
 		
 		if(!mimeType.equals("image/jpeg") && 
 				!mimeType.equals("image/png") &&
 				!mimeType.equals("image/gif")){
-			return Response.serverError().entity("bad mime type").build();
+			log.info("got bad mimetype");
+			return Response.serverError().entity(new ResponseMessage("bad mime type")).build();
 		}
 		
 		Expense exp = db.getExpenseById(expenseId);
 		if(exp.getExpenseImage() != null){
-			return Response.serverError().entity("Trying to overwrite image").build();
+			log.info("trying to overwrite");
+			return Response.serverError().entity(new ResponseMessage("Trying to overwrite image")).build();
 		}
 		ExpenseImage im = new ExpenseImage();
 		im.setExpense(exp);
@@ -89,6 +91,7 @@ public class ImageRESTService {
 		response.put("image_id", String.valueOf(im.getId()));
 		response.put("expense_id", String.valueOf(expenseId));
 		response.put("mime_type", mimeType);
+		log.info("allocated image_id:" + im.getId());
 		return Response.ok().entity(response).build();
 	}
 	
@@ -100,29 +103,32 @@ public class ImageRESTService {
 	 * 		image: base64_image_string
 	 */
 	@SuppressWarnings("unchecked")
-	@PUT
+	@POST
 	@Path("/{id:[0-9][0-9]*}")
 	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response putImage(
 			@PathParam("id") Integer imageId,
 			Map<String, Object> imageMap) throws IOException{
+		log.info("PUT started");
 		ExpenseImage im = db.getExpenseImageById(imageId);
 		String username = null, password=null, image_str=null;
-		ExpenseUser exp = db.authenticate(username, password);
-		if(exp == null)
-			return Response.serverError().entity("Authentication Error").build();
-		
 		try{
 			username = ((Map<String,String>) imageMap.get("user")).get("username");
 			password = ((Map<String,String>) imageMap.get("user")).get("password");
 			image_str = (String) imageMap.get("image");
 		} catch(Exception e){
-			return Response.serverError().entity("Wrong argument format").build();
+			log.info("put got bad format");
+			return Response.serverError().entity(new ResponseMessage("Wrong argument format")).build();
 		}
+		ExpenseUser exp = db.authenticate(username, password);
+		if(exp == null)
+			return Response.serverError().entity(new ResponseMessage("Authentication Error")).build();
 		byte[] buffer = Base64.decode(image_str);
 		im.setImageData(buffer);
 		expenseService.updateExpenseImage(im);
-		return Response.ok().build();
+		log.info("succesfully put image");
+		return Response.ok().entity(new ResponseMessage("Successfuly stored image")).build();
 	}
 	
 	@GET
