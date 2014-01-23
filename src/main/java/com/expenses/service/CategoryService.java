@@ -17,8 +17,13 @@ public class CategoryService {
 	@Inject
 	private Event<ExpenseCategory> categoryEvtSrc;
 
-	public void addCategory(ExpenseCategory c){
+	public void addCategory(ExpenseCategory c, boolean jsfContext){
 		em.persist(c);
-		categoryEvtSrc.fire(c);
+		if(jsfContext)
+			categoryEvtSrc.fire(c);
+	}
+	
+	public void addCategory(ExpenseCategory c){
+		addCategory(c, true);
 	}
 }

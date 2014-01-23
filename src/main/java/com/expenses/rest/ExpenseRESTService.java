@@ -45,7 +45,7 @@ public class ExpenseRESTService {
 			ExpenseUser inUser) {
 		ExpenseUser expUser = db.authenticate(inUser.getUsername(), inUser.getPassword());
 		if(expUser == null){
-			return Response.serverError().entity("{\"message\":\"Authentication Error\"}").build();
+			return Response.serverError().entity("{\"message\":\"Authentication Error\"}").status(401).build();
 		}
 		List<Expense> expenseList = db.getExpensesById(expUser);
 		log.info("Rest service got " + expenseList.size() + " results");
@@ -62,7 +62,7 @@ public class ExpenseRESTService {
 			) {
 		ExpenseUser expUser = db.authenticate(inUser.getUsername(), inUser.getPassword());
 		if(expUser == null){
-			return Response.serverError().entity("{\"message\":\"Authentication Error\"}").build();
+			return Response.serverError().entity("{\"message\":\"Authentication Error\"}").status(401).build();
 		}
 		try{
 			ExpenseCategory category = db.getExpenseCategoryByName(expUser, categoryName);
@@ -101,7 +101,7 @@ public class ExpenseRESTService {
 		ExpenseUser expUser = db.authenticate(username, password);
 		ExpenseCategory cat = null;
 		if(expUser == null){
-			return Response.serverError().entity("{\"message\":\"Authentication Error\"}").build();
+			return Response.serverError().entity("{\"message\":\"Authentication Error\"}").status(401).build();
 		}
 		try {
 			cat = db.getExpenseCategoryByName(expUser, category);
@@ -119,7 +119,7 @@ public class ExpenseRESTService {
 		} catch (Exception e){
 			return Response.serverError().entity("{\"message\":\"There was a problem with adding the expense:" +e.getMessage() + "\"}").build();
 		}
-		return Response.ok().build();	
+		return Response.ok().entity("{\"message\":\"Successfully Added User\"}").build();	
 	}
 	
 	@POST
@@ -134,7 +134,7 @@ public class ExpenseRESTService {
 		ExpenseUser expUser = db.authenticate(inUser.getUsername(), inUser.getPassword());
 		if(expUser == null){
 			log.info("Authentication failure for " + inUser.getUsername());
-			return Response.serverError().entity("{\"message\":\"Authentication Error\"}").build();
+			return Response.serverError().entity("{\"message\":\"Authentication Error\"}").status(401).build();
 		}
 		Expense expToRemove = db.getExpenseById(id);
 		if(!expToRemove.getExpenseUser().getUsername().equals(inUser.getUsername())){

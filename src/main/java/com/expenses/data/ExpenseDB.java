@@ -70,9 +70,13 @@ public class ExpenseDB{
 	
 	public ExpenseUser authenticate(String username, String password){
 		log.info("Authenticating "+ username);
-		ExpenseUser dbUser = getExpenseUser(username);
-		if(dbUser.getPassword().equals(password)){
-			return dbUser;
+		try{
+			ExpenseUser dbUser = getExpenseUser(username);
+			if(dbUser.getPassword().equals(password)){
+				return dbUser;
+			}
+		} catch(Exception e){
+			return null;
 		}
 		return null;
 	}
